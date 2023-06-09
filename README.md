@@ -20,6 +20,5 @@ python3 scrapescript.py
 ```
 # Demo
 
-<script async id="asciicast-590597" src="https://asciinema.org/a/590597.js"></script>
 
 [![asciicast](https://asciinema.org/a/590597.svg)](https://asciinema.org/a/590597)
