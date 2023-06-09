@@ -12,6 +12,12 @@ source venv/bin/activate
 python3 scrapescript.py
 ```
 
+# Usage
+
+```
+python3 scrapescript.py domain.com
+```
+
 # Demo
 
 
