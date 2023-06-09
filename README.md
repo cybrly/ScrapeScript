@@ -1,6 +1,8 @@
 # ScrapeScript
 
-Domain email scraper that "just works." Also, converts ROT13 encoded emails, if found, to plaintext.
+Domain email scraper that "just works." Used for red team and pentesting scenarios; educational purposes only.
+
+For many local government and K-12 school websites, their staff email directories are loosly obfuscated wit a ROT13 cipher to "prevent" email scraping. This script will convert those ROT13 encoded emails to plaintext before printing to stdout.
 
 # Installation
 
