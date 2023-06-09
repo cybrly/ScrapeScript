@@ -1,2 +1,14 @@
 # ScrapeScript
 Domain email scraper that "just works." Also, converts ROT13 encoded emails, if found, to plaintext.
+
+# Installation
+
+```
+python3 -m venv venv
+```
+```
+source venv/bin/activate
+```
+```
+python3 scriptscrape.py
+```
