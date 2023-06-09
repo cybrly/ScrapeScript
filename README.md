@@ -20,4 +20,4 @@ python3 scrapescript.py
 ```
 # Demo
 
-[![asciicast]([https://asciinema.org/a/14.png)](https://asciinema.org/a/14](https://asciinema.org/a/THYcF29gnttaW09PPUdtb1n47))
+[![asciicast](https://asciinema.org/a/590597.svg)](https://asciinema.org/a/590597)
