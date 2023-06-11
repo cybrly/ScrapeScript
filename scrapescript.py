@@ -146,4 +146,3 @@ if __name__ == "__main__":
             print("No new emails found. Exiting...")
             exit_event.set()
             break
-#
