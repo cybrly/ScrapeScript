@@ -142,7 +142,7 @@ if __name__ == "__main__":
         p.join(timeout=1)
         if not p.is_alive():
             break
-        if time.time() - start_time > 30:
+        if time.time() - start_time > 120:
             print("No new emails found. Exiting...")
             exit_event.set()
             break
