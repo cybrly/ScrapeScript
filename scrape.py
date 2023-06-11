@@ -1,49 +1,48 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import sys
 import codecs
 import argparse
 from urllib.parse import urlparse, urljoin
 from tqdm import tqdm
 from colorama import init, Fore
-from email_validator import validate_email, EmailNotValidError # additional library for email validation
+from email_validator import validate_email, EmailNotValidError  # additional library for email validation
 
 # session creation
 session = requests.Session()
 session.headers.update({'User-Agent': 'Mozilla/5.0'})
 
-# new function for email extraction and validation
-def extract_and_validate_emails(tag, mail_regex, rot13_regex, domain):
-    emails_set = set()
 
-    rot13_encoded_emails = re.findall(rot13_regex, str(tag))
-    for encoded_email in rot13_encoded_emails:
-        decoded_email = decode_rot13(encoded_email)
-        # using email-validator library for validation
-        try:
-            v = validate_email(decoded_email)
-            decoded_email = decoded_email.lower()
-            print_email(decoded_email, domain)
-            emails_set.add(decoded_email)
-        except EmailNotValidError as e:
-            # email is not valid, nothing to do
-            pass
+def add_http(url):
+    if not re.match('(?:http|https)://', url):
+        return 'http://' + url
+    return url
 
-    # Find normal emails
-    if not rot13_encoded_emails:
-        emails = re.findall(mail_regex, str(tag))
-        for email in emails:
-            try:
-                v = validate_email(email)
-                email = email.lower()
-                print_email(email, domain)
-                emails_set.add(email)
-            except EmailNotValidError as e:
-                # email is not valid, nothing to do
-                pass
 
-    return emails_set
+def decode_rot13(encoded_email):
+    return codecs.decode(encoded_email, 'rot_13')
+
+
+def is_valid(url, domain):
+    parsed = urlparse(url)
+    return bool(parsed.netloc) and parsed.netloc.endswith(domain)
+
+
+def print_email(email, domain, file, mail_ids):
+    if email not in mail_ids:
+        email_domain = email.split('@')[-1]
+        if email_domain == domain:
+            output = Fore.GREEN + email + Fore.RESET  # print in green
+        else:
+            output = email
+
+        print(output)
+        if file:
+            with open(file, 'a') as f:
+                f.write(output + '\n')
+                
+        mail_ids.add(email)
+
 
 # modification to get_links function to use session
 def get_links(url):
@@ -52,8 +51,9 @@ def get_links(url):
     for a in soup.find_all('a', href=True):
         yield a['href']
 
+
 # modified scrape_emails to handle exceptions and use extract_and_validate_emails function
-def scrape_emails(url, depth):
+def scrape_emails(url, depth, output_file):
     url = add_http(url)
     domain = urlparse(url).netloc
     urls_to_visit = [(url, 0)]
@@ -76,7 +76,8 @@ def scrape_emails(url, depth):
                 continue
 
             for tag in soup.find_all():
-                mail_ids.update(extract_and_validate_emails(tag, mail_regex, rot13_regex, domain))
+                emails = extract_and_validate_emails(tag, mail_regex, rot13_regex, domain, output_file, mail_ids)
+                mail_ids.update(emails)
 
             if current_depth < depth:
                 for link in get_links(current_url):
@@ -86,11 +87,46 @@ def scrape_emails(url, depth):
 
             pbar.update(1)
 
+
+# new function for email extraction and validation
+def extract_and_validate_emails(tag, mail_regex, rot13_regex, domain, output_file, mail_ids):
+    emails_set = set()
+
+    rot13_encoded_emails = re.findall(rot13_regex, str(tag))
+    for encoded_email in rot13_encoded_emails:
+        decoded_email = decode_rot13(encoded_email)
+        # using email-validator library for validation
+        try:
+            v = validate_email(decoded_email)
+            decoded_email = decoded_email.lower()
+            print_email(decoded_email, domain, output_file, mail_ids)
+            emails_set.add(decoded_email)
+        except EmailNotValidError as e:
+            # email is not valid, nothing to do
+            pass
+
+    # Find normal emails
+    if not rot13_encoded_emails:
+        emails = re.findall(mail_regex, str(tag))
+        for email in emails:
+            try:
+                v = validate_email(email)
+                email = email.lower()
+                print_email(email, domain, output_file, mail_ids)
+                emails_set.add(email)
+            except EmailNotValidError as e:
+                # email is not valid, nothing to do
+                pass
+
+    return emails_set
+
+
 if __name__ == "__main__":
     init()  # initialize colorama
     parser = argparse.ArgumentParser(description="Scrape a webpage for email addresses.")
     parser.add_argument("url", help="The domain to scrape.")
     parser.add_argument("-d", "--depth", type=int, help="The maximum depth to follow links.", default=1)
+    parser.add_argument("-o", "--output", type=str, help="File to save the scraped emails.", default=None)
     args = parser.parse_args()
 
-    scrape_emails(args.url, args.depth)
+    scrape_emails(args.url, args.depth, args.output)
